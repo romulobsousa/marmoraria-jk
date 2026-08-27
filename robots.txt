@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://marmorariajk.vercel.app/sitemap.xml
+Sitemap: https://marmoraria-jk.vercel.app/sitemap.xml

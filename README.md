@@ -37,7 +37,7 @@ python3 -m http.server 8000
 |---|---|
 | Número de WhatsApp | Procure por `5541999917485` em `index.html` (formato internacional, sem `+`) |
 | Telefone exibido | Procure por `(41) 99991-7485` em `index.html` |
-| Domínio (SEO, OG, sitemap) | Procure por `marmorariajk.vercel.app` em `index.html`, `robots.txt` e `sitemap.xml` |
+| Domínio (SEO, OG, sitemap) | Procure por `marmoraria-jk.vercel.app` em `index.html`, `robots.txt` e `sitemap.xml` |
 | Horário de atendimento | Seção `#contato` e o bloco JSON-LD no `<head>` |
 | Cidades atendidas | Seção `#regioes` e `areaServed` no JSON-LD |
 | Cores do tema | Bloco `:root` no topo de `styles.css` |
