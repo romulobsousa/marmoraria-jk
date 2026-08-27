@@ -8,42 +8,79 @@
 
   /* Sombra no header ao rolar */
   var header = document.querySelector(".site-header");
-  var ticking = false;
-  function onScroll() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(function () {
-      header.classList.toggle("is-scrolled", window.scrollY > 12);
-      ticking = false;
-    });
-  }
-  if (header) {
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+  function marcarHeader() {
+    header.classList.toggle("is-scrolled", window.scrollY > 12);
   }
 
-  /* Revelar seções ao entrar na tela */
-  var alvos = document.querySelectorAll(
-    ".section-head, .card, .step, .stone, .gal-item, .region, .strip-item, .faq details, .cta-inner"
+  /* ---------------------------------------------------------------
+     Revelar elementos ao entrar na tela.
+     Feito na base de getBoundingClientRect (e não de IntersectionObserver)
+     de propósito: um salto de âncora pode fazer o observer nunca registrar
+     o elemento como visível, e o conteúdo fica invisível para sempre.
+     Aqui a varredura roda a cada rolagem, então não existe estado preso.
+  --------------------------------------------------------------- */
+  var alvos = [].slice.call(
+    document.querySelectorAll(
+      ".section-head, .card, .step, .stone, .gal-item, .region, .strip-item, .faq details, .cta-inner"
+    )
   );
-  if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (e, i) {
-          if (!e.isIntersecting) return;
-          setTimeout(function () {
-            e.target.classList.add("is-visible");
-          }, Math.min(i * 60, 240));
-          io.unobserve(e.target);
-        });
-      },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
-    );
-    alvos.forEach(function (el) {
-      el.classList.add("reveal");
-      io.observe(el);
+  alvos.forEach(function (el) {
+    el.classList.add("reveal");
+  });
+
+  var pendentes = alvos.slice();
+  var agendado = false;
+
+  function varrer() {
+    agendado = false;
+    marcarHeader();
+
+    var limite = window.innerHeight * 0.92;
+    var restantes = [];
+    var naVez = 0;
+
+    pendentes.forEach(function (el) {
+      if (el.getBoundingClientRect().top < limite) {
+        if (naVez) el.style.transitionDelay = Math.min(naVez * 60, 240) + "ms";
+        el.classList.add("is-visible");
+        naVez++;
+      } else {
+        restantes.push(el);
+      }
     });
+
+    pendentes = restantes;
   }
+
+  function pedirVarredura() {
+    if (agendado) return;
+    agendado = true;
+    requestAnimationFrame(varrer);
+  }
+
+  window.addEventListener("scroll", pedirVarredura, { passive: true });
+  window.addEventListener("resize", pedirVarredura);
+  window.addEventListener("hashchange", pedirVarredura);
+  window.addEventListener("load", pedirVarredura);
+  /* Foto que carrega empurra o conteudo: revarre quando a altura muda */
+  document.addEventListener("load", pedirVarredura, true);
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(pedirVarredura).observe(document.body);
+  }
+  [100, 400, 900, 1800, 3000].forEach(function (t) {
+    setTimeout(pedirVarredura, t);
+  });
+  varrer();
+
+  /* Rede de seguranca: nada dentro da tela pode continuar invisivel */
+  setTimeout(function () {
+    if (!pendentes.length) return;
+    pendentes.slice().forEach(function (el) {
+      if (el.getBoundingClientRect().top < window.innerHeight) {
+        el.classList.add("is-visible");
+      }
+    });
+  }, 3500);
 
   /* Fecha as outras perguntas do FAQ ao abrir uma */
   var faqs = document.querySelectorAll(".faq details");
@@ -63,9 +100,9 @@
     new IntersectionObserver(
       function (entries) {
         entries.forEach(function (e) {
+          flutuante.style.transition = "opacity .3s ease, transform .25s ease";
           flutuante.style.opacity = e.isIntersecting ? "0" : "1";
           flutuante.style.pointerEvents = e.isIntersecting ? "none" : "auto";
-          flutuante.style.transition = "opacity .3s ease, transform .25s ease";
         });
       },
       { threshold: 0.35 }
