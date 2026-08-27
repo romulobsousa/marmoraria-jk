@@ -42,22 +42,43 @@ python3 -m http.server 8000
 | Cidades atendidas | Seção `#regioes` e `areaServed` no JSON-LD |
 | Cores do tema | Bloco `:root` no topo de `styles.css` |
 
-## Como colocar as fotos reais
+## Fotos
 
-Na seção `#trabalhos` do `index.html`, troque cada bloco:
+As fotos ficam em `assets/fotos/`, cada uma em dois formatos: `.webp` (servido a
+quem suporta) e `.jpg` (fallback). Os originais ficam em `img/`, que **nao vai
+para o repositorio** (esta no `.gitignore`).
 
-```html
-<div class="gal-item" data-stone="preto"><span>Bancada de cozinha em granito preto</span></div>
+Onde cada foto aparece:
+
+| Arquivo | Onde | Formato |
+|---|---|---|
+| `cozinha-ilha-granito-preto` | card "Cozinhas e areas gourmet" | 1200x540 |
+| `banheiro-bancada-travertino` | card "Banheiros e lavabos" | 1200x540 |
+| `cozinha-bancada-acabamento` | card "Acabamentos e escadas" | 1200x540 |
+| `galeria-ilha-quartzo-branco` | galeria | 1000x1000 |
+| `galeria-cozinha-completa` | galeria | 1000x1000 |
+| `galeria-banheiro-cuba-apoio` | galeria | 1000x1000 |
+| `galeria-lavabo-dourado` | galeria | 1000x1000 |
+
+### Adicionar uma foto nova na galeria
+
+1. Jogue o original em `img/`
+2. Gere os dois formatos (precisa do ImageMagick):
+
+```bash
+cd img
+convert "SUA-FOTO.jpg" -auto-orient -strip -resize "1000x1000^" \
+  -gravity center -extent 1000x1000 -quality 82 ../assets/fotos/NOME.jpg
+convert ../assets/fotos/NOME.jpg -quality 78 ../assets/fotos/NOME.webp
 ```
 
-por:
+3. Copie um bloco `<figure class="gal-item">` no `index.html` e troque o nome do
+   arquivo, o `alt` e a legenda. Sempre escreva um `alt` que descreva a peca e o
+   material - e o que o Google le.
 
-```html
-<div class="gal-item"><img src="/assets/foto-1.jpg" alt="Bancada de cozinha em granito preto São Gabriel" loading="lazy"><span>Bancada de cozinha em granito preto</span></div>
-```
-
-Recomendado: imagens em **.webp** ou **.jpg**, no máximo 1600px de largura e ~250KB cada.
-Os mesmos `data-stone` valem para os cards de serviço (`.card-media`) e as amostras (`.swatch`).
+Se a foto sair deitada, acrescente `-rotate 90` ou `-rotate -90` ao primeiro
+comando. Se estiver torta, `-rotate 15` (ou outro angulo) resolve, mas corte
+depois com `-crop`.
 
 ## Depoimentos
 
