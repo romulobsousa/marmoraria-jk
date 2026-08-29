@@ -60,6 +60,34 @@ Onde cada foto aparece:
 | `galeria-banheiro-cuba-apoio` | galeria | 1000x1000 |
 | `galeria-lavabo-dourado` | galeria | 1000x1000 |
 
+### Amostras de pedra
+
+As seis amostras da secao "Materiais" ficam em `assets/pedras/`, no mesmo
+esquema webp + jpg, em 4:3. Os originais estao em `img/pedras/`.
+
+| Arquivo | Pedra |
+|---|---|
+| `preto-sao-gabriel` | Granito Preto Sao Gabriel |
+| `branco-siena` | Branco Siena |
+| `cinza-corumba` | Cinza Corumba |
+| `verde-ubatuba` | Verde Ubatuba |
+| `marmore-carrara` | Marmore tipo Carrara |
+| `quartzo` | Quartzo |
+
+Para trocar ou acrescentar uma pedra:
+
+```bash
+cd img/pedras
+convert "SUA-PEDRA.jpg" -auto-orient -strip -resize "560x420^" \
+  -gravity center -extent 560x420 -quality 72 ../../assets/pedras/NOME.jpg
+convert "SUA-PEDRA.jpg" -auto-orient -strip -resize "560x420^" \
+  -gravity center -extent 560x420 -quality 62 ../../assets/pedras/NOME.webp
+```
+
+Depois copie um bloco `<figure class="stone">` no `index.html`. Mantenha a
+frase "As imagens sao ilustrativas" no fim da secao: as fotos mostram o tipo
+de pedra, nao a chapa que o cliente vai levar.
+
 ### Adicionar uma foto nova na galeria
 
 1. Jogue o original em `img/`
