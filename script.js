@@ -2,6 +2,25 @@
 (function () {
   "use strict";
 
+  /* =========================================================
+     Rastreamento de conversao — Google Ads
+     ---------------------------------------------------------
+     A tag AW fica no <head> do index.html. Aqui vai so o que
+     dispara quando alguem clica para falar no WhatsApp.
+
+     conversaoWhatsapp: o rotulo da acao de conversao. No Google
+     Ads o snippet vem como send_to: 'AW-18133557925/AbC-dEfGhIj'
+     — cole aqui SO o que vem depois da barra.
+     Enquanto estiver vazio o site funciona normal, so nao
+     registra a conversao.
+     ========================================================= */
+  var ADS = {
+    id: "AW-18133557925",
+    conversaoWhatsapp: "GkH7CIeH3ukcEKXF4MZD",
+    valor: 1.0,
+    moeda: "BRL"
+  };
+
   /* Ano no rodapé */
   var ano = document.getElementById("ano");
   if (ano) ano.textContent = new Date().getFullYear();
@@ -109,16 +128,37 @@
     ).observe(ctaFinal);
   }
 
-  /* Ponto único para plugar Meta Pixel / Google Ads depois */
+  /* Todo botao de contato dispara os eventos de conversao.
+     data-cta diz de qual bloco da pagina veio o clique. */
   document.querySelectorAll("[data-cta]").forEach(function (el) {
     el.addEventListener("click", function () {
       var origem = el.getAttribute("data-cta");
-      if (typeof window.fbq === "function") {
-        window.fbq("track", "Contact", { content_name: origem });
-      }
-      if (typeof window.gtag === "function") {
-        window.gtag("event", "contato_whatsapp", { origem: origem });
-      }
+
+      /* Meta Pixel — passa a valer sozinho se o pixel for colado no <head> */
+      try {
+        if (typeof window.fbq === "function") {
+          window.fbq("track", "Contact", { content_name: origem });
+        }
+      } catch (e) {}
+
+      if (typeof window.gtag !== "function") return;
+
+      /* Evento nomeado: serve para relatorio e para o GA4, se houver */
+      try {
+        window.gtag("event", "clique_whatsapp", { origem: origem });
+      } catch (e) {}
+
+      /* Conversao do Google Ads — so dispara com o rotulo preenchido */
+      try {
+        if (ADS.id && ADS.conversaoWhatsapp) {
+          window.gtag("event", "conversion", {
+            send_to: ADS.id + "/" + ADS.conversaoWhatsapp,
+            value: ADS.valor,
+            currency: ADS.moeda,
+            origem: origem
+          });
+        }
+      } catch (e) {}
     });
   });
 })();
