@@ -131,25 +131,38 @@ button{font:inherit}
 .site-header.is-scrolled{box-shadow:0 10px 30px rgba(0,0,0,.45);background:rgba(12,12,14,.95)}
 .header-inner{display:flex;align-items:center;gap:1rem;min-height:66px}
 
-.brand{display:flex;align-items:center;gap:.65rem;margin-right:auto}
-.brand-mark{
-  width:40px;height:40px;flex:none;border-radius:11px;
-  display:grid;place-items:center;
-  font-family:var(--serif);font-weight:700;font-size:1.05rem;letter-spacing:.04em;
-  color:#171208;
-  background:linear-gradient(135deg,var(--gold-2),var(--gold));
-  box-shadow:0 6px 16px rgba(201,168,106,.25);
-}
+.brand{display:flex;align-items:center;gap:.6rem;margin-right:auto;min-width:0}
+.brand-mark{display:block;flex:none;line-height:0}
+.brand-mark img{height:34px;width:auto;display:block}
 .brand-text{display:flex;flex-direction:column;line-height:1.2;min-width:0}
-.brand-text strong{font-family:var(--serif);font-size:1.12rem;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.brand-text strong{
+  font-family:var(--serif);font-size:1rem;font-weight:600;letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* No celular o monograma ja identifica a marca; a linha de apoio sairia
+   cortada pelo botao do WhatsApp, entao so aparece a partir de 600px. */
 .brand-text small{
-  font-size:.55rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+  display:none;
+  font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
   white-space:nowrap;
 }
-@media (min-width:600px){ .brand-text small{font-size:.62rem;letter-spacing:.16em} }
+@media (min-width:600px){
+  .brand-text small{display:block}
+  .brand-text strong{font-size:1.12rem}
+  .brand-mark img{height:38px}
+  .brand{gap:.65rem}
+}
 
 .nav-desktop{display:none}
 .header-cta .ico{width:17px;height:17px}
+
+/* Em telas bem estreitas o botao vira so o icone: libera espaco para o
+   nome da marca aparecer inteiro em vez de sair reticente. */
+@media (max-width:399px){
+  .header-cta{padding:.6rem;border-radius:50%}
+  .header-cta span{display:none}
+  .header-cta .ico{width:20px;height:20px}
+}
 
 /* ---------- hero ---------- */
 .hero{position:relative;overflow:hidden;padding:56px 0 60px;isolation:isolate}
@@ -331,7 +344,9 @@ button{font:inherit}
 /* ---------- footer ---------- */
 .site-footer{background:var(--bg);border-top:1px solid var(--line);padding:48px 0 100px}
 .footer-grid{display:grid;grid-template-columns:1fr;gap:2rem}
-.footer-brand p{color:var(--muted);font-size:.88rem;margin-top:.9rem;max-width:40ch}
+.footer-logo{display:inline-block;line-height:0}
+.footer-logo img{width:190px;height:auto;max-width:100%}
+.footer-brand p{color:var(--muted);font-size:.88rem;margin-top:1.1rem;max-width:40ch}
 .footer-col h3{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
 .footer-col ul{display:grid;gap:.45rem}
 .footer-col li,.footer-col a{color:var(--muted);font-size:.9rem}
@@ -382,6 +397,7 @@ button{font:inherit}
   html{scroll-padding-top:86px}
   .section{padding:100px 0}
   .header-inner{min-height:74px}
+  .brand-mark img{height:44px}
   .nav-desktop{display:flex;gap:1.7rem;margin-right:1.5rem}
   .nav-desktop a{
     font-size:.92rem;font-weight:500;color:var(--muted);position:relative;padding:.25rem 0;

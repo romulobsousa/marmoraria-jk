@@ -42,6 +42,37 @@ python3 -m http.server 8000
 | Cidades atendidas | Seção `#regioes` e `areaServed` no JSON-LD |
 | Cores do tema | Bloco `:root` no topo de `styles.css` |
 
+## Marca
+
+O arquivo original da logo esta em `img/logo` (PNG com fundo transparente,
+1536x1024). O que o site usa fica em `assets/marca/`:
+
+| Arquivo | Onde aparece |
+|---|---|
+| `monograma-jk` (png/webp) | marca do cabecalho — so o "JK", sem a palavra MARMORARIA, que ficaria ilegivel nesse tamanho |
+| `logo-jk` (png/webp) | rodape, em 190px de largura |
+| `favicon-32.png`, `icone-512.png` | icone da aba e do schema |
+| `apple-touch-icon.png` | icone ao salvar na tela inicial do iPhone |
+
+Para regerar tudo a partir de um arquivo novo em `img/logo`:
+
+```bash
+cd img
+convert logo -trim +repage -resize 720x ../assets/marca/logo-jk.png
+convert ../assets/marca/logo-jk.png -quality 88 ../assets/marca/logo-jk.webp
+convert logo -trim +repage -gravity north -crop 100%x85%+0+0 +repage -trim +repage \
+  -resize 280x ../assets/marca/monograma-jk.png
+convert ../assets/marca/monograma-jk.png -quality 90 ../assets/marca/monograma-jk.webp
+convert ../assets/marca/logo-jk.png -colors 200 -depth 8 PNG8:../assets/marca/logo-jk.png
+```
+
+O recorte de 85% e o que separa o monograma da palavra MARMORARIA sem cortar
+o rabinho do J.
+
+A imagem de compartilhamento (`assets/og-image.png`) sai de
+`assets/_og-source.html`: sirva a pasta localmente e tire um print de
+1200x630 dessa pagina.
+
 ## Fotos
 
 As fotos ficam em `assets/fotos/`, cada uma em dois formatos: `.webp` (servido a

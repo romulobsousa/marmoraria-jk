@@ -23,8 +23,9 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/assets/favicon.svg">
+<link rel="icon" href="/assets/marca/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/assets/marca/icone-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="/assets/marca/apple-touch-icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,6 +53,7 @@
   "telephone": "+5541999917485",
   "priceRange": "$$",
   "image": "https://marmoraria-jk.vercel.app/assets/og-image.png",
+  "logo": "https://marmoraria-jk.vercel.app/assets/marca/icone-512.png",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Curitiba",
@@ -99,7 +101,10 @@
 <header class="site-header" id="topo">
   <div class="wrap header-inner">
     <a class="brand" href="#topo" aria-label="Marmoraria JK — página inicial">
-      <span class="brand-mark" aria-hidden="true">JK</span>
+      <picture class="brand-mark">
+        <source srcset="/assets/marca/monograma-jk.webp" type="image/webp">
+        <img src="/assets/marca/monograma-jk.png" alt="" width="280" height="157" fetchpriority="high" decoding="async">
+      </picture>
       <span class="brand-text">
         <strong>Marmoraria JK</strong>
         <small>Granito &middot; Mármore &middot; Quartzo</small>
@@ -479,9 +484,11 @@
 <footer class="site-footer">
   <div class="wrap footer-grid">
     <div class="footer-brand">
-      <a class="brand" href="#topo">
-        <span class="brand-mark" aria-hidden="true">JK</span>
-        <span class="brand-text"><strong>Marmoraria JK</strong><small>Granito &middot; Mármore &middot; Quartzo</small></span>
+      <a class="footer-logo" href="#topo" aria-label="Marmoraria JK — voltar ao topo">
+        <picture>
+          <source srcset="/assets/marca/logo-jk.webp" type="image/webp">
+          <img src="/assets/marca/logo-jk.png" alt="Marmoraria JK" width="720" height="462" loading="lazy" decoding="async">
+        </picture>
       </a>
       <p>Bancadas, soleiras e acabamentos em pedra natural sob medida, com medição, corte e instalação própria em Curitiba e Região Metropolitana.</p>
     </div>
