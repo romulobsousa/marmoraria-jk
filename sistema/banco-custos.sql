@@ -14,8 +14,8 @@
 -- preço já com a margem, e só.
 -- =====================================================================
 
-create table if not exists public.orcamento_custos (
-  orcamento_id  uuid primary key references public.orcamentos(id) on delete cascade,
+create table if not exists jk.orcamento_custos (
+  orcamento_id  uuid primary key references jk.orcamentos(id) on delete cascade,
 
   -- { "<id do peça>": 18500.00, ... } — o custo unitário de cada peça
   custos        jsonb not null default '{}'::jsonb,
@@ -26,34 +26,34 @@ create table if not exists public.orcamento_custos (
   atualizado_em timestamptz not null default now()
 );
 
-alter table public.orcamento_custos enable row level security;
+alter table jk.orcamento_custos enable row level security;
 
-drop policy if exists "custos: so admin le"     on public.orcamento_custos;
-drop policy if exists "custos: so admin cria"   on public.orcamento_custos;
-drop policy if exists "custos: so admin edita"  on public.orcamento_custos;
-drop policy if exists "custos: so admin apaga"  on public.orcamento_custos;
+drop policy if exists "custos: so admin le"     on jk.orcamento_custos;
+drop policy if exists "custos: so admin cria"   on jk.orcamento_custos;
+drop policy if exists "custos: so admin edita"  on jk.orcamento_custos;
+drop policy if exists "custos: so admin apaga"  on jk.orcamento_custos;
 
 create policy "custos: so admin le"
-  on public.orcamento_custos for select to authenticated
-  using (public.meu_papel() = 'admin');
+  on jk.orcamento_custos for select to authenticated
+  using (jk.meu_papel() = 'admin');
 
 create policy "custos: so admin cria"
-  on public.orcamento_custos for insert to authenticated
-  with check (public.meu_papel() = 'admin');
+  on jk.orcamento_custos for insert to authenticated
+  with check (jk.meu_papel() = 'admin');
 
 create policy "custos: so admin edita"
-  on public.orcamento_custos for update to authenticated
-  using (public.meu_papel() = 'admin');
+  on jk.orcamento_custos for update to authenticated
+  using (jk.meu_papel() = 'admin');
 
 create policy "custos: so admin apaga"
-  on public.orcamento_custos for delete to authenticated
-  using (public.meu_papel() = 'admin');
+  on jk.orcamento_custos for delete to authenticated
+  using (jk.meu_papel() = 'admin');
 
 -- carimbo de atualização (a função já existe desde o banco.sql)
-drop trigger if exists tg_custos_atualizacao on public.orcamento_custos;
+drop trigger if exists tg_custos_atualizacao on jk.orcamento_custos;
 create trigger tg_custos_atualizacao
-  before update on public.orcamento_custos
-  for each row execute function public.marca_atualizacao();
+  before update on jk.orcamento_custos
+  for each row execute function jk.marca_atualizacao();
 
 -- ---------------------------------------------------------------------
 -- No histórico entra que a margem mudou — nunca o custo em si.
@@ -66,11 +66,11 @@ begin
               where table_schema = 'public' and table_name = 'historico') then
 
     execute $gatilho$
-      create or replace function public.historia_custo()
+      create or replace function jk.historia_custo()
       returns trigger
       language plpgsql
       security definer
-      set search_path = public
+      set search_path = jk, public
       as $corpo$
       declare v_num text;
       begin
@@ -81,18 +81,18 @@ begin
         select lpad(coalesce(o.numero,0)::text, 3, '0') ||
                case when coalesce(o.cliente_nome,'') <> '' then ' · ' || o.cliente_nome else '' end
           into v_num
-          from public.orcamentos o where o.id = NEW.orcamento_id;
+          from jk.orcamentos o where o.id = NEW.orcamento_id;
 
-        perform public.anota('orcamento_margem', 'Orçamento ' || coalesce(v_num, '?'),
+        perform jk.anota('orcamento_margem', 'Orçamento ' || coalesce(v_num, '?'),
                              'margem de ' || NEW.margem || '%', NEW.orcamento_id);
         return null;
       end;
       $corpo$;
     $gatilho$;
 
-    execute 'drop trigger if exists historia on public.orcamento_custos';
-    execute 'create trigger historia after insert or update on public.orcamento_custos
-             for each row execute function public.historia_custo()';
+    execute 'drop trigger if exists historia on jk.orcamento_custos';
+    execute 'create trigger historia after insert or update on jk.orcamento_custos
+             for each row execute function jk.historia_custo()';
   end if;
 end $$;
 
@@ -100,3 +100,14 @@ end $$;
 -- Pronto. Abra um orçamento e o bloco "Sua conta" aparece no lado —
 -- só para você.
 -- =====================================================================
+
+
+-- ---------------------------------------------------------------------
+-- O schema jk não é o public: as permissões que a Supabase já dá lá
+-- precisam ser dadas aqui na mão. O RLS acima continua mandando em quem
+-- enxerga o quê — isto só abre a porta do schema.
+-- ---------------------------------------------------------------------
+grant usage on schema jk to anon, authenticated, service_role;
+grant all on all tables    in schema jk to anon, authenticated, service_role;
+grant all on all sequences in schema jk to anon, authenticated, service_role;
+grant execute on all functions in schema jk to anon, authenticated, service_role;

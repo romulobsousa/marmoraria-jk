@@ -4,7 +4,7 @@
 -- (O banco.sql dos orçamentos precisa já ter rodado antes.)
 -- =====================================================================
 
-create table if not exists public.visitas (
+create table if not exists jk.visitas (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
 
@@ -25,39 +25,50 @@ create table if not exists public.visitas (
                 check (status in ('agendada','confirmada','realizada','cancelada')),
 
   -- liga a visita ao orçamento que nasceu dela (opcional)
-  orcamento_id  uuid references public.orcamentos(id) on delete set null,
+  orcamento_id  uuid references jk.orcamentos(id) on delete set null,
 
   criado_em     timestamptz not null default now(),
   atualizado_em timestamptz not null default now()
 );
 
 create index if not exists visitas_user_data_idx
-  on public.visitas (user_id, data, hora);
+  on jk.visitas (user_id, data, hora);
 
 -- carimbo de atualização
-drop trigger if exists tg_visitas_atualizacao on public.visitas;
+drop trigger if exists tg_visitas_atualizacao on jk.visitas;
 create trigger tg_visitas_atualizacao
-  before update on public.visitas
-  for each row execute function public.marca_atualizacao();
+  before update on jk.visitas
+  for each row execute function jk.marca_atualizacao();
 
 -- ---------------------------------------------------------------------
 -- SEGURANÇA (RLS) — cada usuário só enxerga as próprias visitas
 -- ---------------------------------------------------------------------
-alter table public.visitas enable row level security;
+alter table jk.visitas enable row level security;
 
-drop policy if exists "le as proprias"    on public.visitas;
-drop policy if exists "cria as proprias"  on public.visitas;
-drop policy if exists "edita as proprias" on public.visitas;
-drop policy if exists "apaga as proprias" on public.visitas;
+drop policy if exists "le as proprias"    on jk.visitas;
+drop policy if exists "cria as proprias"  on jk.visitas;
+drop policy if exists "edita as proprias" on jk.visitas;
+drop policy if exists "apaga as proprias" on jk.visitas;
 
 create policy "le as proprias"
-  on public.visitas for select using (auth.uid() = user_id);
+  on jk.visitas for select using (auth.uid() = user_id);
 
 create policy "cria as proprias"
-  on public.visitas for insert with check (auth.uid() = user_id);
+  on jk.visitas for insert with check (auth.uid() = user_id);
 
 create policy "edita as proprias"
-  on public.visitas for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  on jk.visitas for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "apaga as proprias"
-  on public.visitas for delete using (auth.uid() = user_id);
+  on jk.visitas for delete using (auth.uid() = user_id);
+
+
+-- ---------------------------------------------------------------------
+-- O schema jk não é o public: as permissões que a Supabase já dá lá
+-- precisam ser dadas aqui na mão. O RLS acima continua mandando em quem
+-- enxerga o quê — isto só abre a porta do schema.
+-- ---------------------------------------------------------------------
+grant usage on schema jk to anon, authenticated, service_role;
+grant all on all tables    in schema jk to anon, authenticated, service_role;
+grant all on all sequences in schema jk to anon, authenticated, service_role;
+grant execute on all functions in schema jk to anon, authenticated, service_role;

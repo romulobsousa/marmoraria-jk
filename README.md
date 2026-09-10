@@ -52,20 +52,52 @@ tema escuro da marca. Não entra no Google (`noindex` + `Disallow` no robots).
 **Agenda** (visitas), **Equipe** (papéis) e **Histórico** (quem mexeu no quê).
 A fila de cobrança do sistema da marcenaria não veio nesta versão.
 
+### Onde ficam os dados
+
+O plano free da Supabase dá duas vagas de projeto, e elas já estavam ocupadas.
+Em vez de assinar, a marmoraria divide o projeto da Marcenaria Costa mas mora
+num **schema separado, `jk`** — tabelas, numeração, equipe e histórico próprios.
+Nada aqui encosta no que já existe no `public` da marcenaria.
+
+Três coisas são compartilhadas com a marcenaria por serem do projeto, não do
+schema, e por isso levam nome próprio aqui:
+
+| O quê | Nome na marmoraria |
+|---|---|
+| Gatilho em `auth.users` | `jk_ao_criar_usuario` |
+| Bucket de PDF no Storage | `jk-orcamentos` |
+| Políticas em `storage.objects` | prefixadas com `jk:` |
+
+Sem esses nomes próprios, rodar os `.sql` aqui derrubaria o gatilho e as
+políticas da marcenaria — os `drop ... if exists` apagam por nome.
+
+Como `auth.users` é a mesma, um usuário novo criado para a marcenaria aparece
+também na Equipe da marmoraria, inativo, esperando liberação. É só ignorar.
+
 ### Ligar pela primeira vez
 
-1. Crie um projeto no Supabase **só da marmoraria** — não use o mesmo da
-   marcenaria, ou os orçamentos das duas caem nas mesmas tabelas.
-2. Preencha `SUPABASE_URL` e `SUPABASE_CHAVE` em `sistema/config.js`
-   (a chave é a *anon public* / *publishable*, nunca a service_role).
-3. No SQL Editor do Supabase, rode nesta ordem:
+1. Em `sistema/config.js`, preencha `SUPABASE_URL` e `SUPABASE_CHAVE` com os
+   dados do projeto (a chave é a *anon public* / *publishable*, nunca a
+   service_role). `SUPABASE_SCHEMA` já vem como `jk`.
+2. No SQL Editor do Supabase, rode nesta ordem:
    `banco.sql`, `banco-agenda.sql`, `banco-equipe.sql`, `banco-historico.sql`,
    `banco-custos.sql`, `banco-link.sql`, `banco-arquivos.sql`.
+3. Em **Settings → API → Exposed schemas**, acrescente `jk` à lista.
+   É o passo que todo mundo esquece — sem ele o sistema entra mas não acha
+   as tabelas.
 4. Em **Authentication → Users → Add user**, crie seu usuário com
    *Auto Confirm User* marcado. O primeiro usuário entra como admin.
 
 Enquanto a URL e a chave não estiverem preenchidas, o sistema abre uma tela
-explicando o que falta em vez de quebrar.
+explicando o que falta em vez de quebrar. Se o `jk` não estiver exposto, o
+aviso de erro diz exatamente isso.
+
+### Um dia, um projeto só da marmoraria
+
+Se abrir vaga no plano free e você criar um projeto separado: aponte a URL e a
+chave para ele, troque `SUPABASE_SCHEMA` para `'public'` e `SUPABASE_BUCKET`
+para `'orcamentos'`, e rode os mesmos `.sql` trocando `jk.` por `public.`.
+O resto do sistema não muda.
 
 ### Papéis
 

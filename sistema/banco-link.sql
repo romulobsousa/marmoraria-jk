@@ -9,11 +9,11 @@
 -- link que você mandou para aquele cliente.
 -- =====================================================================
 
-create or replace function public.orcamento_por_link(p_id uuid)
+create or replace function jk.orcamento_por_link(p_id uuid)
 returns json
 language sql
 security definer
-set search_path = public
+set search_path = jk, public
 as $$
   select json_build_object(
     'numero',          o.numero,
@@ -30,7 +30,7 @@ as $$
     -- caminho do PDF dentro da guarda de arquivos, para o botão "Baixar em PDF"
     'pdf',             o.user_id::text || '/' || o.id::text || '.pdf'
   )
-  from public.orcamentos o
+  from jk.orcamentos o
   where o.id = p_id
     and o.status in ('enviado','aprovado')   -- rascunho não vaza por link
   limit 1;
@@ -39,5 +39,16 @@ $$;
 -- Repare no que NÃO sai: telefone e e-mail do cliente, e nada de outros
 -- orçamentos. Rascunhos e recusados também não abrem.
 
-revoke all on function public.orcamento_por_link(uuid) from public;
-grant execute on function public.orcamento_por_link(uuid) to anon, authenticated;
+revoke all on function jk.orcamento_por_link(uuid) from public;
+grant execute on function jk.orcamento_por_link(uuid) to anon, authenticated;
+
+
+-- ---------------------------------------------------------------------
+-- O schema jk não é o public: as permissões que a Supabase já dá lá
+-- precisam ser dadas aqui na mão. O RLS acima continua mandando em quem
+-- enxerga o quê — isto só abre a porta do schema.
+-- ---------------------------------------------------------------------
+grant usage on schema jk to anon, authenticated, service_role;
+grant all on all tables    in schema jk to anon, authenticated, service_role;
+grant all on all sequences in schema jk to anon, authenticated, service_role;
+grant execute on all functions in schema jk to anon, authenticated, service_role;

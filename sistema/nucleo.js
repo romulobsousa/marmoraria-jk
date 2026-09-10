@@ -51,6 +51,9 @@ window.App = (function () {
       return 'A tabela de visitas ainda não existe. Rode o banco-agenda.sql no Supabase.';
     if (/relation .*orcamentos.* does not exist/i.test(m))
       return 'A tabela de orçamentos ainda não existe. Rode o banco.sql no Supabase.';
+    if (/schema must be one of|The schema must be/i.test(m))
+      return 'O schema "jk" ainda não está liberado. No Supabase: Settings → API → ' +
+             'Exposed schemas, acrescente jk à lista.';
     if (/Failed to fetch|NetworkError/i.test(m)) return 'Sem conexão com o servidor.';
     if (/JWT|session/i.test(m)) return 'Sua sessão expirou. Entre novamente.';
     return m || 'Algo deu errado.';
@@ -304,8 +307,10 @@ window.App = (function () {
         'line-height:1.65;color:#eeeae3">' +
         '<h1 style="font-family:Georgia,serif;margin:0 0 12px;font-size:1.35rem;color:#d9b978">' +
         'Falta ligar o banco</h1>' +
-        '<p style="color:#b4afa6;margin:0 0 14px">Crie um projeto no Supabase só da marmoraria e ' +
-        'preencha <code style="color:#d9b978">SUPABASE_URL</code> e ' +
+        '<p style="color:#b4afa6;margin:0 0 14px">Pegue a URL e a chave ' +
+        '<em>anon/publishable</em> do projeto Supabase (o mesmo da marcenaria — a ' +
+        'marmoraria mora num schema separado, <code style="color:#d9b978">jk</code>) ' +
+        'e preencha <code style="color:#d9b978">SUPABASE_URL</code> e ' +
         '<code style="color:#d9b978">SUPABASE_CHAVE</code> em ' +
         '<code style="color:#d9b978">sistema/config.js</code>.</p>' +
         '<p style="color:#b4afa6;margin:0 0 8px">Depois rode os arquivos <code>.sql</code> desta ' +
@@ -313,7 +318,11 @@ window.App = (function () {
         '<ol style="color:#b4afa6;margin:0;padding-left:20px">' +
         '<li>banco.sql</li><li>banco-agenda.sql</li><li>banco-equipe.sql</li>' +
         '<li>banco-historico.sql</li><li>banco-custos.sql</li><li>banco-link.sql</li>' +
-        '<li>banco-arquivos.sql</li></ol></div>';
+        '<li>banco-arquivos.sql</li></ol>' +
+        '<p style="color:#b4afa6;margin:14px 0 0">Por último, em ' +
+        '<strong style="color:#eeeae3">Settings → API → Exposed schemas</strong>, ' +
+        'acrescente <code style="color:#d9b978">jk</code> à lista. É o passo que ' +
+        'todo mundo esquece — sem ele o sistema entra mas não acha as tabelas.</p></div>';
       return;
     }
     if (!window.supabase || !window.supabase.createClient) {
@@ -323,7 +332,12 @@ window.App = (function () {
       return;
     }
 
-    App.sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_CHAVE);
+    /* O schema: a marmoraria vive em "jk" dentro do projeto da marcenaria,
+       então o cliente inteiro (tabelas e rpc) aponta para lá. Trocou para
+       um projeto só seu? Ponha 'public' no config e não mude mais nada. */
+    App.sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_CHAVE, {
+      db: { schema: CFG.SUPABASE_SCHEMA || 'jk' }
+    });
 
     App.sb.auth.getSession().then(function (r) {
       var s = r && r.data && r.data.session;

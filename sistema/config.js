@@ -15,15 +15,24 @@
    protege os dados é o RLS que os arquivos banco*.sql ativaram: sem login,
    o banco não devolve nada.
 
-   Use um projeto Supabase SÓ da marmoraria. Se apontar para o mesmo da
-   marcenaria, os orçamentos das duas empresas caem nas mesmas tabelas e a
-   numeração vira uma só.
+   Este sistema divide o projeto Supabase com a Marcenaria Costa, mas mora
+   num schema só dele (jk). Tabelas, numeração, equipe e histórico são
+   separados: nada aqui encosta no que já existe lá.
+
+   Depois de rodar os .sql, vá em Settings → API → Exposed schemas e
+   acrescente "jk" à lista. Sem isso o sistema não enxerga as tabelas.
+
+   Um dia sobrou vaga no plano free e você criou um projeto só da
+   marmoraria? Aponte a URL e a chave para ele e troque o schema para
+   'public'. Só isso: o resto do sistema não muda.
    ===================================================================== */
 
 window.CONFIG_ORCAMENTO = {
 
-  SUPABASE_URL:   'COLE_AQUI_A_URL',
-  SUPABASE_CHAVE: 'COLE_AQUI_A_CHAVE',
+  SUPABASE_URL:    'COLE_AQUI_A_URL',
+  SUPABASE_CHAVE:  'COLE_AQUI_A_CHAVE',
+  SUPABASE_SCHEMA: 'jk',
+  SUPABASE_BUCKET: 'jk-orcamentos',
 
   /* ---- dados que saem no PDF ---- */
   empresa: {

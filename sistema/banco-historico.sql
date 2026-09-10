@@ -13,7 +13,7 @@
 -- (entrar, sair, mandar no WhatsApp, baixar o PDF) o sistema registra.
 -- =====================================================================
 
-create table if not exists public.historico (
+create table if not exists jk.historico (
   id        bigserial primary key,
   user_id   uuid references auth.users(id) on delete set null,
   quando    timestamptz not null default now(),
@@ -23,23 +23,23 @@ create table if not exists public.historico (
   alvo_id   uuid
 );
 
-create index if not exists historico_quando  on public.historico (quando desc);
-create index if not exists historico_pessoa  on public.historico (user_id, quando desc);
+create index if not exists historico_quando  on jk.historico (quando desc);
+create index if not exists historico_pessoa  on jk.historico (user_id, quando desc);
 
-alter table public.historico enable row level security;
+alter table jk.historico enable row level security;
 
-drop policy if exists "historico: so admin le"      on public.historico;
-drop policy if exists "historico: equipe registra"  on public.historico;
+drop policy if exists "historico: so admin le"      on jk.historico;
+drop policy if exists "historico: equipe registra"  on jk.historico;
 
 -- ler: só o admin
 create policy "historico: so admin le"
-  on public.historico for select to authenticated
-  using (public.meu_papel() = 'admin');
+  on jk.historico for select to authenticated
+  using (jk.meu_papel() = 'admin');
 
 -- escrever: qualquer um da equipe, e só em nome de si mesmo
 create policy "historico: equipe registra"
-  on public.historico for insert to authenticated
-  with check (public.meu_papel() is not null and user_id = auth.uid());
+  on jk.historico for insert to authenticated
+  with check (jk.meu_papel() is not null and user_id = auth.uid());
 
 -- (de propósito: nenhuma política de update ou delete)
 
@@ -47,31 +47,31 @@ create policy "historico: equipe registra"
 -- Quem escreve o histórico pelos gatilhos ignora as políticas acima —
 -- por isso "security definer".
 -- ---------------------------------------------------------------------
-create or replace function public.anota(p_acao text, p_alvo text, p_detalhe text, p_alvo_id uuid)
+create or replace function jk.anota(p_acao text, p_alvo text, p_detalhe text, p_alvo_id uuid)
 returns void
 language sql
 security definer
-set search_path = public
+set search_path = jk, public
 as $$
-  insert into public.historico (user_id, acao, alvo, detalhe, alvo_id)
+  insert into jk.historico (user_id, acao, alvo, detalhe, alvo_id)
   values (auth.uid(), p_acao, coalesce(p_alvo,''), coalesce(p_detalhe,''), p_alvo_id);
 $$;
 
-grant execute on function public.anota(text, text, text, uuid) to authenticated;
+grant execute on function jk.anota(text, text, text, uuid) to authenticated;
 
 -- ---------------------------------------------------------------------
 -- Orçamentos
 -- ---------------------------------------------------------------------
-create or replace function public.historia_orcamento()
+create or replace function jk.historia_orcamento()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = jk, public
 as $$
 declare
   v_acao text;
   v_det  text := '';
-  v_orc  public.orcamentos;
+  v_orc  jk.orcamentos;
 begin
   v_orc := case when TG_OP = 'DELETE' then OLD else NEW end;
 
@@ -93,7 +93,7 @@ begin
     v_acao := 'orcamento_editado';
   end if;
 
-  perform public.anota(
+  perform jk.anota(
     v_acao,
     'Orçamento ' || lpad(coalesce(v_orc.numero, 0)::text, 3, '0') ||
       case when coalesce(v_orc.cliente_nome,'') <> '' then ' · ' || v_orc.cliente_nome else '' end,
@@ -104,24 +104,24 @@ begin
 end;
 $$;
 
-drop trigger if exists historia on public.orcamentos;
+drop trigger if exists historia on jk.orcamentos;
 create trigger historia
-  after insert or update or delete on public.orcamentos
-  for each row execute function public.historia_orcamento();
+  after insert or update or delete on jk.orcamentos
+  for each row execute function jk.historia_orcamento();
 
 -- ---------------------------------------------------------------------
 -- Agenda
 -- ---------------------------------------------------------------------
-create or replace function public.historia_visita()
+create or replace function jk.historia_visita()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = jk, public
 as $$
 declare
   v_acao text;
   v_det  text := '';
-  v_vis  public.visitas;
+  v_vis  jk.visitas;
 begin
   v_vis := case when TG_OP = 'DELETE' then OLD else NEW end;
 
@@ -140,7 +140,7 @@ begin
     v_acao := 'visita_editada';
   end if;
 
-  perform public.anota(
+  perform jk.anota(
     v_acao,
     (case v_vis.tipo
        when 'medicao'      then 'Medição'
@@ -158,24 +158,24 @@ begin
 end;
 $$;
 
-drop trigger if exists historia on public.visitas;
+drop trigger if exists historia on jk.visitas;
 create trigger historia
-  after insert or update or delete on public.visitas
-  for each row execute function public.historia_visita();
+  after insert or update or delete on jk.visitas
+  for each row execute function jk.historia_visita();
 
 -- ---------------------------------------------------------------------
 -- Equipe — quem liberou quem, e quem virou o quê
 -- ---------------------------------------------------------------------
-create or replace function public.historia_equipe()
+create or replace function jk.historia_equipe()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = jk, public
 as $$
 declare
   v_acao text;
   v_det  text := '';
-  v_eq   public.equipe;
+  v_eq   jk.equipe;
 begin
   v_eq := case when TG_OP = 'DELETE' then OLD else NEW end;
 
@@ -194,18 +194,29 @@ begin
     return null;             -- mudança que não interessa registrar
   end if;
 
-  perform public.anota(v_acao,
+  perform jk.anota(v_acao,
                        coalesce(nullif(v_eq.nome,''), v_eq.email),
                        v_det, v_eq.id);
   return null;
 end;
 $$;
 
-drop trigger if exists historia on public.equipe;
+drop trigger if exists historia on jk.equipe;
 create trigger historia
-  after insert or update or delete on public.equipe
-  for each row execute function public.historia_equipe();
+  after insert or update or delete on jk.equipe
+  for each row execute function jk.historia_equipe();
 
 -- =====================================================================
 -- Pronto. Abra o sistema e vai aparecer a aba Histórico — só para você.
 -- =====================================================================
+
+
+-- ---------------------------------------------------------------------
+-- O schema jk não é o public: as permissões que a Supabase já dá lá
+-- precisam ser dadas aqui na mão. O RLS acima continua mandando em quem
+-- enxerga o quê — isto só abre a porta do schema.
+-- ---------------------------------------------------------------------
+grant usage on schema jk to anon, authenticated, service_role;
+grant all on all tables    in schema jk to anon, authenticated, service_role;
+grant all on all sequences in schema jk to anon, authenticated, service_role;
+grant execute on all functions in schema jk to anon, authenticated, service_role;

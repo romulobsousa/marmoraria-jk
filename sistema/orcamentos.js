@@ -556,7 +556,7 @@
     // a pasta é a de quem CRIOU o orçamento, não a de quem está enviando:
     // é esse caminho que a página do cliente procura para o botão de PDF
     var pasta = (o.user_id || App.usuario.id) + '/' + o.id;
-    var loja = App.sb.storage.from('orcamentos');
+    var loja = App.sb.storage.from(App.cfg.SUPABASE_BUCKET || 'jk-orcamentos');
 
     return loja.upload(pasta + '.pdf', pdf.blob,
                        { contentType: 'application/pdf', upsert: true })
