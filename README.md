@@ -42,6 +42,51 @@ python3 -m http.server 8000
 | Cidades atendidas | Seção `#regioes` e `areaServed` no JSON-LD |
 | Cores do tema | Bloco `:root` no topo de `styles.css` |
 
+## Sistema de orçamentos
+
+Painel interno em `/sistema/`, no mesmo domínio do site. Copiado do sistema da
+Marcenaria Costa e adaptado: mesma estrutura, textos e papéis da marmoraria,
+tema escuro da marca. Não entra no Google (`noindex` + `Disallow` no robots).
+
+Áreas: **Hoje** (resumo do dia), **Orçamentos** (com PDF e envio no WhatsApp),
+**Agenda** (visitas), **Equipe** (papéis) e **Histórico** (quem mexeu no quê).
+A fila de cobrança do sistema da marcenaria não veio nesta versão.
+
+### Ligar pela primeira vez
+
+1. Crie um projeto no Supabase **só da marmoraria** — não use o mesmo da
+   marcenaria, ou os orçamentos das duas caem nas mesmas tabelas.
+2. Preencha `SUPABASE_URL` e `SUPABASE_CHAVE` em `sistema/config.js`
+   (a chave é a *anon public* / *publishable*, nunca a service_role).
+3. No SQL Editor do Supabase, rode nesta ordem:
+   `banco.sql`, `banco-agenda.sql`, `banco-equipe.sql`, `banco-historico.sql`,
+   `banco-custos.sql`, `banco-link.sql`, `banco-arquivos.sql`.
+4. Em **Authentication → Users → Add user**, crie seu usuário com
+   *Auto Confirm User* marcado. O primeiro usuário entra como admin.
+
+Enquanto a URL e a chave não estiverem preenchidas, o sistema abre uma tela
+explicando o que falta em vez de quebrar.
+
+### Papéis
+
+| Papel | Alcança |
+|---|---|
+| admin | tudo, incluindo custo e margem |
+| marmorista | tudo, menos mexer na equipe |
+| vendedor | orçamentos e agenda |
+| instalador | só a agenda |
+
+O custo do marmorista e a sua margem ficam numa tabela separada que **só o
+admin consegue ler** — não é a tela que esconde, é o banco que não entrega.
+Esses números nunca saem no PDF nem no link que o cliente abre.
+
+### PDF
+
+O corpo do PDF é claro, para o cliente imprimir e encaminhar; só a faixa do
+topo é escura, que é onde a logo dourada aparece como ela é. A logo vem
+embutida em `sistema/logo-dados.js` para o PDF sair certo mesmo sem internet.
+Trocou a logo? Regere esse arquivo — o comando está no comentário dele.
+
 ## Marca
 
 O arquivo original da logo esta em `img/logo` (PNG com fundo transparente,

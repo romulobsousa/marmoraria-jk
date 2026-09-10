@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /sistema/
 
 Sitemap: https://marmoraria-jk.vercel.app/sitemap.xml
