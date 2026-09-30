@@ -36,12 +36,12 @@ window.CONFIG_ORCAMENTO = {
 
   /* ---- dados que saem no PDF ---- */
   empresa: {
-    nome:      'Marmoraria JK',
+    nome:      'Marmoraria Modelo',
     subtitulo: 'Granito, mármore e quartzo sob medida',
     cidade:    'Curitiba · PR',
     telefone:  '(41) 99991-7485',
     whatsapp:  '5541999917485',
-    site:      'marmoraria-jk.vercel.app',
+    site:      'marmoraria-modelo.vercel.app',
     email:     '',
     documento: ''          // CNPJ ou CPF, se quiser que apareça
   },

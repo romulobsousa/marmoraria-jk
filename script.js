@@ -1,4 +1,4 @@
-/* Marmoraria JK — interações leves, sem dependências */
+/* Marmoraria Modelo — interações leves, sem dependências */
 (function () {
   "use strict";
 
